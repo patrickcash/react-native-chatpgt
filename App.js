@@ -34,12 +34,12 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Age</Text>
+      <Text style={styles.label}></Text>
       <TextInput
         style={styles.input}
       />
       <Pressable onPress={onSubmit} style={styles.button}>
-        <Text style={styles.buttonText}>Generate gift ideas</Text>
+        <Text style={styles.buttonText}>Generate Review</Text>
       </Pressable>
       {result && (
         <SafeAreaView style={styles.container}>
