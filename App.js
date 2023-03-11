@@ -1,14 +1,23 @@
 
 import { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Box, Button, FormControl, Heading, Input, NativeBaseProvider, Select, Text } from "native-base";
 import { Configuration, OpenAIApi } from "openai";
+import {REACT_APP_OPENAI_API_KEY} from "@env";
+import "react-native-url-polyfill/auto";
 
 export default function App() {
+  const [rating, setRating] = useState('');
+  const [estType, setEstType] = useState('');
+  const [pros, setPros] = useState('');
+  const [cons, setCons] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
+  const configuration = new Configuration({apiKey: REACT_APP_OPENAI_API_KEY,});
+  const openai = new OpenAIApi(configuration);
+
   function generatePrompt() {
-    return ``;
+    return `write a ${rating} review of a ${estType} with these positive points ${pros} and these negative points ${cons}`;
   }
 
   const onSubmit = async () => {
@@ -22,69 +31,54 @@ export default function App() {
         model: "text-davinci-003",
         prompt: generatePrompt(),
         temperature: 0.6,
+        max_tokens: 2048
       });
-      
+      console.log(completion);
       setResult(completion.data.choices[0].text);
     } catch (e) {
-      Alert.alert("Couldn't generate review", e.message);
+      console.log(e)
+      setResult("Couldn't generate review", e.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}></Text>
-      <TextInput
-        style={styles.input}
-      />
-      <Pressable onPress={onSubmit} style={styles.button}>
-        <Text style={styles.buttonText}>Generate Review</Text>
-      </Pressable>
-      {result && (
-        <SafeAreaView style={styles.container}>
-          <Text style={styles.title}>
-            Generated Review
-          </Text>
-          <Text style={styles.result}>{result}</Text>
-        </SafeAreaView>
-      )}
-    </View>
+    <NativeBaseProvider>
+      <Box alignItems="center" mt="70">
+        <Heading size="xl" >Review Generator</Heading>
+        <Box w="90%" mt="10">
+          <FormControl isRequired>
+            <FormControl.Label>Establishmant Type</FormControl.Label>
+            <Input type="text"  placeholder="i.e. restaurant" value={estType} onChangeText={value => setEstType(value)}/>
+          </FormControl>
+          <FormControl isRequired>
+            <FormControl.Label>Rating</FormControl.Label>
+            <Select selectedValue={rating} onValueChange={value => setRating(value)}>
+              <Select.Item label="Very Negative" value="Very Negative" />
+              <Select.Item label="Slightly Negative" value="Slightly Negative" />
+              <Select.Item label="Neutral" value="Neutral" />
+              <Select.Item label="Slightly Positive" value="Slightly Positive" />
+              <Select.Item label="Very Positive" value="Very Positive" />
+            </Select>
+          </FormControl>
+          <FormControl>
+            <FormControl.Label>Positives</FormControl.Label>
+            <Input type="text" value={pros} onChangeText={value => setPros(value)}/>
+          </FormControl>
+          <FormControl>
+            <FormControl.Label>Negatives</FormControl.Label>
+            <Input type="text" value={cons} onChangeText={value => setCons(value)}/>
+          </FormControl>
+          <Button onPress={onSubmit} mt="5" colorScheme="blue">
+            Generate Review
+          </Button>
+          {result && (<>
+                <Heading mt="10">Generated Review:</Heading>
+                <Text mt="5">{result}</Text>
+            </>)} 
+        </Box>          
+      </Box>         
+    </NativeBaseProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  input: {
-    fontSize: 16,
-
-    borderColor: "#353740;",
-    borderWidth: 1,
-    borderRadius: 4,
-
-    padding: 16,
-    marginTop: 6,
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 16,
-    color: "gray",
-  },
-  button: {
-    marginTop: "auto",
-    backgroundColor: "#10a37f",
-    padding: 16,
-    borderRadius: 4,
-    alignItems: "center",
-    marginVertical: 6,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-});
